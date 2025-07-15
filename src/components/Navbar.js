@@ -41,7 +41,8 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar position="static">
+      {/* ✅ Make AppBar sticky */}
+      <AppBar position="sticky">
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography
             variant="h6"
@@ -49,7 +50,7 @@ export default function Navbar() {
             to="/"
             sx={{ color: 'inherit', textDecoration: 'none' }}
           >
-            Movie App
+            🎬 Recommended Movie App
           </Typography>
 
           {/* Desktop Links */}
@@ -88,7 +89,7 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* Avatar Menu */}
+      {/* Avatar Menu (desktop dropdown) */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -112,6 +113,15 @@ export default function Navbar() {
         sx={{ display: { md: 'none' } }}
       >
         <Box sx={{ width: 250 }} role="presentation" onClick={toggleMobileDrawer}>
+          {/* ✅ Show profile picture at top if logged in */}
+          {token && (
+            <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+              <Avatar src={user?.avatar} alt={user?.username} sx={{ width: 40, height: 40, mr: 1 }} />
+              <Typography variant="body1" noWrap>{user?.username}</Typography>
+            </Box>
+          )}
+          <Divider />
+
           <List>
             {navLinks.map(link => (
               <ListItem button key={link.to} component={Link} to={link.to}>
