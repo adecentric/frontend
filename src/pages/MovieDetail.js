@@ -136,11 +136,7 @@ const MovieDetail = () => {
                 <Typography variant="subtitle2" noWrap>{rec.title}</Typography>
               </CardContent>
             </Card>
-<<<<<<< HEAD
-              <grid><p>&nbsp; </p> </grid>
-=======
-                <grid><p>&nbsp; </p> </grid>
->>>>>>> 9d2146118c81d49512b2a1b37a80df12a901f66f
+<p>&nbsp; </p> 
           </Grid>
         ))}
       </Grid>
