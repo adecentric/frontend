@@ -22,6 +22,13 @@ export default function Footer() {
   return (
     <>
       {/* Footer */}
+      <Box>
+        <p>
+          <p>
+            <br></br>
+          </p>
+        </p>
+      </Box>
       <Box
         component="footer"
         sx={{
@@ -37,12 +44,16 @@ export default function Footer() {
           zIndex: 1300,
         }}
       >
+       
         <Typography variant="body2">
           © {new Date().getFullYear()}{' '}
           <Link href="/" color="inherit" underline="hover">
-            Movie App
+            Recommended Movie App
           </Link>
-          . All rights reserved.
+          . All rights reserved. 
+          | <Link href="/contact" color="inherit" underline="hover"> Contact </Link> 
+          | <Link href="/favorites" color="inherit" underline="hover"> Favorites </Link>
+
         </Typography>
       </Box>
 
