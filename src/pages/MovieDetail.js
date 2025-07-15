@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Container, Typography, Box, Grid, Card, CardMedia, CardContent, Stack, Button
+  Container, Typography, Box, Grid, Card, CardMedia, CardContent, Stack, Button, Skeleton
 } from '@mui/material';
 import {
   FacebookShareButton, TwitterShareButton, WhatsappShareButton,
@@ -18,27 +18,29 @@ const MovieDetail = () => {
   const [videos, setVideos] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const m = await axios.get(`http://localhost:5000/api/search/${id}`);
-        setMovie(m.data);
+        setLoading(true);
+        const [movieRes, videosRes, recRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/search/${id}`),
+          axios.get(`http://localhost:5000/api/search/${id}/videos`),
+          axios.get(`http://localhost:5000/api/search/${id}/recommendations`)
+        ]);
 
-        // ✅ Add to watchlist on view, but catch any error so it doesn't break the page
-        try {
-          await axios.post('http://localhost:5000/api/watchlist/add', { movie: m.data });
-        } catch (watchlistErr) {
-          console.warn('⚠️ Failed to add to watchlist:', watchlistErr.message);
-        }
+        setMovie(movieRes.data);
+        setVideos(videosRes.data);
+        setRecommendations(recRes.data);
 
-        const v = await axios.get(`http://localhost:5000/api/search/${id}/videos`);
-        setVideos(v.data);
-
-        const r = await axios.get(`http://localhost:5000/api/search/${id}/recommendations`);
-        setRecommendations(r.data);
+        // Add to watchlist in background (non-blocking)
+        axios.post('http://localhost:5000/api/watchlist/add', { movie: movieRes.data })
+          .catch(err => console.warn('⚠️ Failed to add to watchlist:', err.message));
       } catch (err) {
         console.error('❌ Failed to load movie data:', err.message);
+      } finally {
+        setLoading(false);
       }
     };
     load();
@@ -46,13 +48,30 @@ const MovieDetail = () => {
 
   const toggleFavorite = () => {
     setIsFavorite(prev => !prev);
-    // You can also connect this to your backend favorites API here
+    // TODO: connect to backend favorites API
   };
 
-  if (!movie) return <Typography>Loading...</Typography>;
-
   const shareUrl = `${window.location.origin}/movie/${id}`;
-  const shareTitle = `Check out "${movie.title}"`;
+  const shareTitle = movie ? `Check out "${movie.title}"` : 'Check this movie!';
+
+  if (loading || !movie) {
+    return (
+      <Container sx={{ mt: 4 }}>
+        <Skeleton variant="text" width="60%" height={40} />
+        <Skeleton variant="text" width="100%" height={80} />
+        <Skeleton variant="rectangular" width="100%" height={400} sx={{ my: 2 }} />
+        <Skeleton variant="text" width="40%" height={30} sx={{ mt: 4 }} />
+        <Grid container spacing={2}>
+          {[...Array(4)].map((_, idx) => (
+            <Grid item xs={6} sm={4} md={3} key={idx}>
+              <Skeleton variant="rectangular" width="100%" height={250} />
+              <Skeleton variant="text" width="80%" />
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  }
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -69,7 +88,7 @@ const MovieDetail = () => {
             title="Trailer"
           ></iframe>
 
-          {/* Share buttons + Favorite */}
+          {/* Share + Favorite */}
           <Stack direction="row" spacing={1} mt={2} alignItems="center">
             <FacebookShareButton url={shareUrl} quote={shareTitle}>
               <FacebookIcon size={36} round />
@@ -87,7 +106,6 @@ const MovieDetail = () => {
               <TelegramIcon size={36} round />
             </TelegramShareButton>
 
-            {/* Favorite button */}
             <Button
               variant={isFavorite ? 'contained' : 'outlined'}
               color="error"
@@ -110,7 +128,7 @@ const MovieDetail = () => {
             <Card component={Link} to={`/movie/${rec.id}`} sx={{ textDecoration: 'none' }}>
               <CardMedia
                 component="img"
-                image={`https://image.tmdb.org/t/p/w500${rec.poster_path}`}
+                image={`https://image.tmdb.org/t/p/w300${rec.poster_path}`} // smaller for mobile
                 alt={rec.title}
                 sx={{ height: 250 }}
               />
@@ -118,6 +136,7 @@ const MovieDetail = () => {
                 <Typography variant="subtitle2" noWrap>{rec.title}</Typography>
               </CardContent>
             </Card>
+                <grid><p>&nbsp; </p> </grid>
           </Grid>
         ))}
       </Grid>
